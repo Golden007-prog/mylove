@@ -124,16 +124,37 @@ export default function ShoreScene({ isActive, onComplete }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
             transition={{ duration: 1, delay: 2 }}
-          >
-            👣
-          </motion.div>
+          />
           <motion.div 
             className="footprints right-prints"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
             transition={{ duration: 1, delay: 2.5 }}
+          />
+
+          {/* Cute beach details */}
+          <motion.div
+            className="beach-sticker beach-shell"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 0.9, y: 0 }}
+            transition={{ duration: 1, delay: 2.2 }}
           >
-            👣
+            🐚
+          </motion.div>
+          <motion.div
+            className="beach-sticker beach-starfish"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 0.85, y: 0 }}
+            transition={{ duration: 1, delay: 2.35 }}
+          >
+            ⭐
+          </motion.div>
+          <motion.div
+            className="beach-sticker beach-crab"
+            animate={{ x: [0, 6, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          >
+            🦀
           </motion.div>
         </div>
         

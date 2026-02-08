@@ -1,4 +1,4 @@
-import { motion, useAnimate } from 'framer-motion';
+import { motion, useAnimate, useMotionValueEvent } from 'framer-motion';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 
 export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
@@ -7,6 +7,8 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
   const boatRef = useRef(null);
   const [boatScope, animate] = useAnimate();
   const prevIsUnderCard = useRef(false);
+  const [progress, setProgress] = useState(typeof scrollProgress === 'number' ? scrollProgress : 0);
+  const lastCollisionCheckAt = useRef(0);
 
   // Calculate boat position ON the curved path
   const pathPoints = useMemo(() => {
@@ -20,9 +22,14 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
     return points;
   }, []);
 
-  const progressIndex = Math.floor(scrollProgress * 100);
+  const progressIndex = Math.floor(progress * 100);
   const clampedIndex = Math.min(Math.max(progressIndex, 0), 100);
   const boatPos = pathPoints[clampedIndex] || { x: 0, y: 5 };
+
+  // If a motion value is passed, subscribe without forcing parent rerenders
+  useMotionValueEvent(scrollProgress, "change", (latest) => {
+    if (typeof latest === 'number') setProgress(latest);
+  });
 
   // Collision detection - check if boat overlaps any card
   const checkCollision = useCallback(() => {
@@ -48,6 +55,10 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
     let animationFrameId;
     
     const checkAndAnimate = () => {
+      const now = performance.now();
+      if (now - lastCollisionCheckAt.current < 80) return; // throttle rect reads on mobile
+      lastCollisionCheckAt.current = now;
+
       const overlapping = checkCollision();
       
       if (overlapping !== prevIsUnderCard.current) {
@@ -76,7 +87,7 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [scrollProgress, checkCollision, animate, boatScope]);
+  }, [progress, checkCollision, animate, boatScope]);
 
   return (
     <>
@@ -123,12 +134,16 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
           />
         )}
 
-        {/* Cute Paper Boat with bobbing animation */}
+        {/* Cute Paper Boat (kawaii) with bobbing animation */}
         <motion.svg 
           width="70" 
           height="50" 
           viewBox="0 0 60 45" 
           className="boat-icon"
+          style={{
+            width: 'clamp(46px, 10vw, 70px)',
+            height: 'auto',
+          }}
           animate={{
             y: [0, -4, 0, -2, 0],
             rotate: [-2, 2, -1, 1, -2],
@@ -139,57 +154,119 @@ export default function SailingBoat({ scrollProgress, cardRefs = [] }) {
             ease: "easeInOut"
           }}
         >
+          <defs>
+            <linearGradient id="boatHullGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff4e8" />
+              <stop offset="100%" stopColor="#f2ddc8" />
+            </linearGradient>
+            <linearGradient id="sailGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#fff7fb" />
+            </linearGradient>
+          </defs>
+
           {/* Water ripples */}
-          <ellipse cx="30" cy="38" rx="25" ry="3" fill="rgba(126, 200, 227, 0.3)" />
-          <ellipse cx="30" cy="40" rx="20" ry="2" fill="rgba(126, 200, 227, 0.2)" />
-          
-          {/* Boat hull - bigger and cuter */}
+          <ellipse cx="30" cy="39" rx="24" ry="3.2" fill="rgba(126, 200, 227, 0.26)" />
+          <ellipse cx="30" cy="41" rx="18" ry="2.2" fill="rgba(126, 200, 227, 0.18)" />
+
+          {/* Tiny sparkle */}
+          <motion.circle
+            cx="12"
+            cy="16"
+            r="1.2"
+            fill="rgba(255, 243, 176, 0.9)"
+            animate={{ opacity: [0.2, 0.9, 0.2], r: [1, 1.7, 1] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Mast */}
           <path
-            d="M5 28 L30 40 L55 28 L50 32 L30 38 L10 32 Z"
-            fill="#f5e6d3"
+            d="M30 35 L30 7"
+            stroke="#1a1a1a"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+
+          {/* Sail + flag group (gentle flutter) */}
+          <motion.g
+            style={{ transformOrigin: '30px 22px', transformBox: 'fill-box' }}
+            animate={{ rotate: [0, 1.2, 0, -1, 0], skewX: [0, -2, 0, 2, 0] }}
+            transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {/* Main sail */}
+            <path
+              d="M30 33 L30 9 L49 28 Q41 31 30 33 Z"
+              fill="url(#sailGrad)"
+              stroke="#1a1a1a"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+
+            {/* Sail stripes */}
+            <path d="M31 13 L44 24" stroke="#ffd1dc" strokeWidth="2" opacity="0.55" strokeLinecap="round" />
+            <path d="M31 19 L40 26" stroke="#ffd1dc" strokeWidth="2" opacity="0.55" strokeLinecap="round" />
+
+            {/* Heart patch on sail */}
+            <path
+              d="M38.8 19.5
+                 C 37.7 18.3, 35.7 18.7, 35.7 20.3
+                 C 35.7 22.0, 38.8 23.5, 38.8 23.5
+                 C 38.8 23.5, 41.9 22.0, 41.9 20.3
+                 C 41.9 18.7, 39.9 18.3, 38.8 19.5 Z"
+              fill="#e8a0a0"
+              opacity="0.9"
+            />
+
+            {/* Little flag (wavy) */}
+            <motion.path
+              d="M30 7 L30 3 L39 5.2 L30 7"
+              fill="#e8a0a0"
+              stroke="#1a1a1a"
+              strokeWidth="1"
+              style={{ transformOrigin: '30px 3px', transformBox: 'fill-box' }}
+              animate={{ rotate: [0, 10, -8, 0], scaleX: [1, 1.06, 0.98, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.g>
+
+          {/* Boat hull (rounded + cute) */}
+          <path
+            d="M7 28
+               L30 40
+               L53 28
+               Q51 34 44 35
+               L30 38
+               L16 35
+               Q9 34 7 28 Z"
+            fill="url(#boatHullGrad)"
             stroke="#1a1a1a"
             strokeWidth="2"
             strokeLinejoin="round"
           />
+
           {/* Hull highlight */}
           <path
-            d="M12 30 L30 36 L48 30"
+            d="M14 31 Q30 38 46 31"
             fill="none"
-            stroke="#fff"
+            stroke="#ffffff"
             strokeWidth="1"
-            opacity="0.5"
+            opacity="0.45"
+            strokeLinecap="round"
           />
-          
-          {/* Main sail */}
+
+          {/* Kawaii face */}
+          <circle cx="24" cy="33.5" r="1.2" fill="#1a1a1a" />
+          <circle cx="36" cy="33.5" r="1.2" fill="#1a1a1a" />
           <path
-            d="M30 35 L30 8 L48 28 Z"
-            fill="#fff"
+            d="M28 35.5 Q30 37 32 35.5"
+            fill="none"
             stroke="#1a1a1a"
-            strokeWidth="2"
-            strokeLinejoin="round"
+            strokeWidth="1.6"
+            strokeLinecap="round"
           />
-          {/* Sail stripes */}
-          <path d="M30 12 L42 24" stroke="#ffd1dc" strokeWidth="2" opacity="0.6" />
-          <path d="M30 18 L38 26" stroke="#ffd1dc" strokeWidth="2" opacity="0.6" />
-          
-          {/* Little flag */}
-          <motion.path
-            d="M30 8 L30 3 L38 5.5 L30 8"
-            fill="#e8a0a0"
-            stroke="#1a1a1a"
-            strokeWidth="1"
-            animate={{ 
-              d: [
-                "M30 8 L30 3 L38 5.5 L30 8",
-                "M30 8 L30 3 L37 6 L30 8",
-                "M30 8 L30 3 L38 5.5 L30 8"
-              ]
-            }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          
-          {/* Heart on the sail */}
-          <text x="36" y="22" fontSize="6" fill="#e8a0a0">♥</text>
+          {/* Blush */}
+          <circle cx="20.5" cy="35.5" r="1.5" fill="rgba(232, 160, 160, 0.55)" />
+          <circle cx="39.5" cy="35.5" r="1.5" fill="rgba(232, 160, 160, 0.55)" />
         </motion.svg>
 
         {/* Trailing hearts - only show when visible */}

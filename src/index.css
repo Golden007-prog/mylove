@@ -340,7 +340,73 @@ body {
   background-size: 8px 8px;
 }
 
+.timeline-cute-decor {
+  position: fixed;
+  inset: 0;
+  z-index: 2; /* Above LyricsBackground, behind cards */
+  pointer-events: none;
+}
+
+.cute-sticker {
+  position: absolute;
+  opacity: 0.65;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.12));
+  user-select: none;
+}
+
+.sticker-cloud {
+  top: 7%;
+  left: 8%;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  opacity: 0.45;
+}
+
+.sticker-bow {
+  top: 18%;
+  left: 22%;
+  font-size: clamp(1.4rem, 4.5vw, 2.1rem);
+  opacity: 0.55;
+}
+
+.sticker-bear {
+  top: 10%;
+  right: 10%;
+  font-size: clamp(1.4rem, 4.5vw, 2.1rem);
+  opacity: 0.45;
+}
+
+.cute-arrow {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Patrick Hand', cursive;
+  font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+  color: rgba(0, 0, 0, 0.35);
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.timeline-card-wrapper {
+  position: relative;
+  z-index: 10; /* Ensure cards stay above decorations */
+}
+
+@media (max-width: 480px) {
+  .sticker-bow {
+    left: 16%;
+    top: 16%;
+  }
+
+  .cute-arrow {
+    top: 26%;
+  }
+}
+
 .timeline-scroll-container {
+  position: relative;
+  z-index: 20; /* Ensure cards render above fixed decorations */
   display: flex;
   flex-direction: column;
   gap: 50vh;
@@ -1065,13 +1131,151 @@ body {
 .shore-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    #ffd89b 0%,
-    #f8b595 30%,
-    #87ceeb 50%,
-    #4a90a4 100%
-  );
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 240, 210, 0.95) 0%, rgba(255, 240, 210, 0) 42%),
+    radial-gradient(circle at 18% 32%, rgba(255, 210, 190, 0.35) 0%, rgba(255, 210, 190, 0) 55%),
+    radial-gradient(circle at 82% 40%, rgba(255, 200, 160, 0.25) 0%, rgba(255, 200, 160, 0) 60%),
+    linear-gradient(
+      to bottom,
+      #ffd8a6 0%,
+      #f7b08f 22%,
+      #b8d8f2 45%,
+      #6bb6c9 60%,
+      #2f6f7f 100%
+    );
+}
+
+.shore-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 58%),
+    linear-gradient(to bottom, rgba(255,255,255,0.20), rgba(255,255,255,0));
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+/* Sun */
+.shore-sun {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  width: min(22vw, 140px);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.25) 22%, rgba(255, 220, 150, 0.85) 55%, rgba(255, 160, 120, 0.0) 72%),
+    radial-gradient(circle, rgba(255, 215, 160, 0.9) 0%, rgba(255, 160, 120, 0.0) 70%);
+  filter: blur(0.2px) drop-shadow(0 0 22px rgba(255, 200, 150, 0.55));
+}
+
+/* Sun reflection on water */
+.sun-reflection {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(26vw, 180px);
+  height: 34%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(to bottom,
+      rgba(255, 240, 210, 0.65) 0%,
+      rgba(255, 220, 180, 0.25) 35%,
+      rgba(255, 220, 180, 0.0) 85%
+    );
+  clip-path: polygon(45% 0%, 55% 0%, 70% 45%, 58% 100%, 42% 100%, 30% 45%);
+  filter: blur(1px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Clouds */
+.cloud {
+  position: absolute;
+  top: 10%;
+  width: 120px;
+  height: 42px;
+  background: rgba(255,255,255,0.55);
+  border-radius: 30px;
+  filter: blur(0.2px);
+  opacity: 0.55;
+}
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+.cloud::before { width: 54px; height: 54px; left: 14px; top: -24px; }
+.cloud::after  { width: 70px; height: 70px; right: 10px; top: -34px; opacity: 0.85; }
+.cloud-1 { left: 12%; top: 10%; transform: scale(0.95); }
+.cloud-2 { left: 58%; top: 14%; transform: scale(1.1); opacity: 0.45; }
+.cloud-3 { left: 32%; top: 22%; transform: scale(0.8); opacity: 0.4; }
+
+/* Seagulls + sparkles */
+.seagull {
+  position: fixed;
+  font-size: 1.1rem;
+  opacity: 0.85;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.12));
+  pointer-events: none;
+  z-index: 205;
+}
+
+.sky-sparkle {
+  position: fixed;
+  font-size: 1rem;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 8px rgba(255, 243, 176, 0.45));
+  pointer-events: none;
+  z-index: 205;
+}
+
+/* Ocean */
+.shore-ocean {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30%;
+  height: 30%;
+  overflow: hidden;
+}
+
+.ocean-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom,
+      rgba(168, 222, 245, 0.35) 0%,
+      rgba(88, 172, 196, 0.55) 40%,
+      rgba(40, 110, 128, 0.85) 100%
+    );
+}
+
+.ocean-gradient::after {
+  content: '';
+  position: absolute;
+  inset: -40% -40%;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.12) 0px,
+      rgba(255,255,255,0.00) 10px,
+      rgba(255,255,255,0.00) 22px
+    );
+  transform: rotate(-8deg);
+  opacity: 0.55;
+  animation: ocean-shimmer 8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes ocean-shimmer {
+  0% { transform: translateX(-2%) rotate(-8deg); }
+  50% { transform: translateX(2%) rotate(-8deg); }
+  100% { transform: translateX(-2%) rotate(-8deg); }
 }
 
 /* Animated waves */
@@ -1081,24 +1285,45 @@ body {
   left: 0;
   right: 0;
   height: 100px;
+  pointer-events: none;
 }
 
 .wave {
   position: absolute;
   width: 200%;
   height: 40px;
-  background: rgba(255,255,255,0.3);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.26), rgba(255,255,255,0.06));
   border-radius: 100%;
   animation: wave-move 3s ease-in-out infinite;
+  filter: blur(0.2px);
 }
 
 .wave-1 { bottom: 0; animation-delay: 0s; }
 .wave-2 { bottom: 15px; animation-delay: 0.5s; opacity: 0.6; }
 .wave-3 { bottom: 30px; animation-delay: 1s; opacity: 0.4; }
+.wave-4 { bottom: 45px; animation-delay: 1.4s; opacity: 0.28; }
 
 @keyframes wave-move {
   0%, 100% { transform: translateX(-25%); }
   50% { transform: translateX(0%); }
+}
+
+/* Foam on shore */
+.wave-foam {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -6px;
+  height: 36px;
+  background:
+    radial-gradient(circle at 10% 60%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 35%),
+    radial-gradient(circle at 28% 40%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 32%),
+    radial-gradient(circle at 55% 65%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 34%),
+    radial-gradient(circle at 78% 45%, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 33%),
+    radial-gradient(circle at 92% 60%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 35%);
+  filter: blur(0.4px);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 /* Beach */
@@ -1108,8 +1333,73 @@ body {
   left: 0;
   right: 0;
   height: 30%;
-  background: linear-gradient(to bottom, #f5deb3 0%, #deb887 100%);
+  background:
+    linear-gradient(to bottom, rgba(210, 170, 120, 0.45) 0%, rgba(222, 184, 135, 0.75) 24%, #deb887 100%),
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%),
+    radial-gradient(circle at 80% 55%, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0) 60%);
 }
+
+.shore-beach::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 28px;
+  background: linear-gradient(to bottom, rgba(60, 120, 135, 0.24), rgba(60, 120, 135, 0));
+  filter: blur(0.2px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.shore-beach::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, rgba(0,0,0,0.035) 1px, transparent 1.6px);
+  background-size: 10px 10px;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* Realistic footprints (stamped pattern) */
+.footprints {
+  position: absolute;
+  bottom: 8%;
+  width: 60px;
+  height: 170px;
+  opacity: 0;
+  filter: blur(0.15px);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  background-repeat: repeat-y;
+  background-size: 22px 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='40' viewBox='0 0 22 40'%3E%3Cg fill='rgba(0,0,0,0.18)'%3E%3Cellipse cx='8' cy='10' rx='4.2' ry='6.2'/%3E%3Cellipse cx='14.2' cy='28' rx='4.2' ry='6.2'/%3E%3C/g%3E%3C/svg%3E");
+}
+.left-prints {
+  left: 18%;
+  transform: rotate(-16deg);
+}
+.right-prints {
+  right: 18%;
+  transform: rotate(14deg) scaleX(-1);
+  opacity: 0;
+}
+
+/* Beach stickers */
+.beach-sticker {
+  position: absolute;
+  bottom: 10%;
+  font-size: 1.2rem;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.12));
+  pointer-events: none;
+  user-select: none;
+}
+.beach-shell { left: 8%; transform: rotate(-10deg); opacity: 0.9; }
+.beach-starfish { right: 10%; transform: rotate(14deg); opacity: 0.85; }
+.beach-crab { left: 46%; bottom: 6%; font-size: 1.15rem; opacity: 0.75; }
 
 /* Figures */
 .figure {
@@ -1233,7 +1523,7 @@ body {
 /* Long hair flowing behind the ENTIRE body - at body level */
 .girl-hair-back-positioner {
   position: absolute;
-  top: 20px; /* Below the head */
+  top: 16px; /* Lift up so it connects to head */
   left: 50%;
   transform: translateX(-50%);
   z-index: -1; /* BEHIND everything */
@@ -1245,6 +1535,7 @@ body {
   height: 55px;
   background: linear-gradient(180deg, #4a3728 0%, #3d2c22 50%, #2c1f18 100%);
   border-radius: 4px 4px 16px 16px;
+  clip-path: polygon(36% 0%, 64% 0%, 78% 100%, 22% 100%); /* taper into the head */
   transform-origin: top center;
 }
 

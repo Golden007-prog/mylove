@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { useEffect, useState, useRef, useCallback, createRef, useLayoutEffect } from 'react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useEffect, useState, useRef, useCallback, createRef, useLayoutEffect, useMemo } from 'react';
 import MemoryCard from './MemoryCard';
 import SailingBoat, { JourneyPath } from './SailingBoat';
 import LyricsBackground from './LyricsBackground';
@@ -11,11 +11,18 @@ const TIME_OFFSET = 0;
 export default function TimelineJourney({ currentTime, isActive, audioRef }) {
   const [visibleCards, setVisibleCards] = useState([]);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
   const [keyframes, setKeyframes] = useState([]);
   const containerRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const lastTouchY = useRef(0);
+  const scrollYRef = useRef(0);
+  const desiredScrollYRef = useRef(0);
+  const scrollRafRef = useRef(null);
+
+  // Motion values (avoid rerendering whole timeline on every pixel)
+  const scrollYMotion = useMotionValue(0);
+  const scrollProgressMotion = useMotionValue(0);
+  const containerY = useTransform(scrollYMotion, (v) => -v);
 
   // Create refs for all memory cards for collision detection and position measurement
   const cardRefs = useRef(timeline.map(() => createRef()));
@@ -63,6 +70,16 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
       window.removeEventListener('resize', measurePositions);
     };
   }, [isActive]);
+
+  // Compute maximum scroll to clamp (prevents runaway scroll values)
+  const maxScrollY = useMemo(() => {
+    if (keyframes.length === 0) return 0;
+    const viewportHeight = window.innerHeight || 0;
+    const lastKeyframe = keyframes[keyframes.length - 1];
+    const lastCentered =
+      lastKeyframe.offsetY - (viewportHeight / 2) + (lastKeyframe.cardHeight / 2);
+    return Math.max(0, lastCentered);
+  }, [keyframes]);
 
   // LERP-based scroll calculation from audio time
   const getScrollFromAudioTime = useCallback((audioTime) => {
@@ -145,9 +162,27 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
       // Apply time offset so lyrics appear slightly before audio
       const adjustedTime = currentTime - TIME_OFFSET;
       const newScrollY = getScrollFromAudioTime(adjustedTime);
-      setScrollY(newScrollY);
+      const clamped = Math.min(Math.max(newScrollY, 0), maxScrollY || newScrollY);
+      scrollYRef.current = clamped;
+      desiredScrollYRef.current = clamped;
+      scrollYMotion.set(clamped);
+
+      const progress =
+        keyframes.length > 0
+          ? Math.min(1, Math.max(0, clamped / (keyframes[keyframes.length - 1]?.offsetY || 1)))
+          : 0;
+      scrollProgressMotion.set(progress);
     }
-  }, [currentTime, isActive, isUserScrolling, getScrollFromAudioTime, keyframes]);
+  }, [
+    currentTime,
+    isActive,
+    isUserScrolling,
+    getScrollFromAudioTime,
+    keyframes,
+    maxScrollY,
+    scrollYMotion,
+    scrollProgressMotion,
+  ]);
 
   // Update visible cards based on current time
   // First card is always visible when timeline is active to avoid blank screen
@@ -184,16 +219,41 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
   const updateScroll = useCallback((deltaY) => {
     handleScrollStart();
     
-    // Calculate new scroll position in pixels
-    const newScrollY = Math.max(0, scrollY + deltaY);
-    setScrollY(newScrollY);
-    
-    // Update audio time to match scroll position
-    if (audioRef?.current && keyframes.length > 0) {
-      const newAudioTime = getAudioTimeFromScroll(newScrollY);
-      audioRef.current.currentTime = newAudioTime;
-    }
-  }, [handleScrollStart, scrollY, audioRef, getAudioTimeFromScroll, keyframes]);
+    // Accumulate desired scroll in a ref (no rerender)
+    const nextDesired = desiredScrollYRef.current + deltaY;
+    desiredScrollYRef.current = Math.min(Math.max(nextDesired, 0), maxScrollY || nextDesired);
+
+    // Batch DOM/motion updates to once per animation frame
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+
+      const newScrollY = desiredScrollYRef.current;
+      scrollYRef.current = newScrollY;
+      scrollYMotion.set(newScrollY);
+
+      // Update progress for boat/progress bar without rerender
+      const progress =
+        keyframes.length > 0
+          ? Math.min(1, Math.max(0, newScrollY / (keyframes[keyframes.length - 1]?.offsetY || 1)))
+          : 0;
+      scrollProgressMotion.set(progress);
+
+      // Update audio time to match scroll position
+      if (audioRef?.current && keyframes.length > 0) {
+        const newAudioTime = getAudioTimeFromScroll(newScrollY);
+        audioRef.current.currentTime = newAudioTime;
+      }
+    });
+  }, [
+    handleScrollStart,
+    audioRef,
+    getAudioTimeFromScroll,
+    keyframes,
+    maxScrollY,
+    scrollYMotion,
+    scrollProgressMotion,
+  ]);
 
   // Mouse wheel handler
   const handleWheel = useCallback((e) => {
@@ -222,9 +282,9 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
     updateScroll(deltaY);
   }, [updateScroll]);
 
-  const handleTouchEnd = useCallback(() => {
-    resumeAudio();
-  }, [resumeAudio]);
+  // IMPORTANT: don't auto-resume on touch end.
+  // User can tap to resume (existing "Tap to play" indicator).
+  const handleTouchEnd = useCallback(() => {}, []);
 
   // Attach event listeners
   useEffect(() => {
@@ -246,11 +306,6 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
     };
   }, [isActive, handleWheel, handleClick, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  // Calculate scroll progress for boat and progress bar (0-1)
-  const scrollProgress = keyframes.length > 0 
-    ? Math.min(1, Math.max(0, scrollY / (keyframes[keyframes.length - 1]?.offsetY || 1)))
-    : 0;
-
   if (!isActive) return null;
 
   return (
@@ -268,6 +323,41 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
       {/* Journey path - behind cards */}
       <JourneyPath />
       
+      {/* Cute decorations to fill empty space */}
+      <div className="timeline-cute-decor" aria-hidden="true">
+        <motion.span
+          className="cute-sticker sticker-cloud"
+          animate={{ y: [0, -6, 0], x: [0, 4, 0], rotate: [0, -2, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          ☁️
+        </motion.span>
+
+        <motion.span
+          className="cute-sticker sticker-bow"
+          animate={{ y: [0, -5, 0], rotate: [0, 3, 0] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+        >
+          🎀
+        </motion.span>
+
+        <motion.span
+          className="cute-sticker sticker-bear"
+          animate={{ y: [0, -7, 0], rotate: [0, 2, 0] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+        >
+          🧸
+        </motion.span>
+
+        <motion.div
+          className="cute-arrow"
+          animate={{ y: [0, 6, 0], opacity: [0.35, 0.65, 0.35] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          ↓ ↓ ↓
+        </motion.div>
+      </div>
+
       {/* Scroll indicator */}
       {isUserScrolling && (
         <div className="scroll-indicator">
@@ -280,7 +370,7 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
         ref={scrollContainerRef}
         className="timeline-scroll-container"
         style={{
-          transform: `translateY(-${scrollY}px)`,
+          y: containerY,
         }}
       >
         {timeline.map((card, index) => (
@@ -304,9 +394,13 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
       
       {/* Progress bar */}
       <div className="timeline-progress">
-        <div 
+        <motion.div
           className="timeline-progress-fill"
-          style={{ height: `${scrollProgress * 100}%` }}
+          style={{
+            height: '100%',
+            scaleY: scrollProgressMotion,
+            transformOrigin: 'top',
+          }}
         />
       </div>
       
@@ -390,7 +484,7 @@ export default function TimelineJourney({ currentTime, isActive, audioRef }) {
       </div>
       
       {/* Sailing boat - with card refs for collision detection */}
-      <SailingBoat scrollProgress={scrollProgress} cardRefs={cardRefs.current} />
+      <SailingBoat scrollProgress={scrollProgressMotion} cardRefs={cardRefs.current} />
     </motion.div>
   );
 }
