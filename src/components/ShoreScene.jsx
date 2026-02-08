@@ -184,15 +184,51 @@ export default function ShoreScene({ isActive, onComplete }) {
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, delay: 0.25 }}
           >
+            {/* Long hair back - positioned BEHIND everything at body level */}
+            <motion.div 
+              className="girl-hair-back-positioner"
+            >
+              <motion.div
+                className="girl-hair-back-wrapper"
+                animate={{ skewX: [-2, 2, -2] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+            
+            {/* Head with face and hair top */}
             <div className="figure-head">
-              <div className="figure-hair girl-hair" />
+              <div className="figure-hair girl-hair">
+                <motion.div 
+                  className="long-hair-strand left-strand"
+                  animate={{ rotate: [-5, 5, -5], x: [-1, 1, -1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div 
+                  className="long-hair-strand right-strand"
+                  animate={{ rotate: [5, -5, 5], x: [1, -1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                />
+              </div>
               <div className="figure-face" />
             </div>
+            
+            {/* Dress bodice */}
             <div className="figure-torso girl-dress">
               <div className="figure-arm left-arm" />
               <div className="figure-arm right-arm" />
             </div>
-            <div className="figure-legs girl-legs">
+            
+            {/* Flared skirt */}
+            <motion.div 
+              className="girl-skirt"
+              animate={{ 
+                scaleX: [1, 1.02, 1]
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+            
+            {/* Legs */}
+            <div className="figure-legs">
               <motion.div 
                 className="leg"
                 animate={{ rotate: [-8, 8, -8] }}
@@ -205,15 +241,6 @@ export default function ShoreScene({ isActive, onComplete }) {
               />
             </div>
           </motion.div>
-          {/* Flowing dress effect */}
-          <motion.div 
-            className="dress-flow"
-            animate={{ 
-              skewX: [-2, 2, -2],
-              scaleX: [1, 1.05, 1]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
         </motion.div>
 
         {/* Sparkles in the sky */}

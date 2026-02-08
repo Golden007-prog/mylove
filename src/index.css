@@ -1114,7 +1114,7 @@ body {
 /* Figures */
 .figure {
   position: fixed;
-  bottom: 25%;
+  bottom: 20%;
   z-index: 210;
 }
 
@@ -1122,51 +1122,205 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
+/* --- HEAD SECTION --- */
 .figure-head {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.figure-face {
+  width: 22px;
+  height: 22px;
   background: #f5d0c5;
-  border: 2px solid var(--ink-black);
+  border-radius: 50%;
+  border: 2px solid #1a1a1a;
+  z-index: 5;
+  position: relative;
+}
+
+/* --- BOY STYLING --- */
+.boy-hair {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 14px;
+  background: #3d2c22;
+  border-radius: 14px 14px 3px 3px;
+  z-index: 6;
+  border: 1.5px solid #1a1a1a;
+}
+
+.boy-shirt {
+  background: linear-gradient(180deg, #5d8aa8 0%, #4a7a99 100%);
+  border-radius: 6px 6px 2px 2px;
+  width: 28px;
+  height: 30px;
+  border: 2px solid #1a1a1a;
+  margin-top: -3px;
+  position: relative;
+}
+
+.boy-shirt::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 8px solid #f5d0c5;
 }
 
 .figure-torso {
-  width: 25px;
-  height: 35px;
+  width: 28px;
+  height: 30px;
   background: #2c3e50;
-  border: 2px solid var(--ink-black);
-  border-radius: 5px 5px 0 0;
-  margin-top: -2px;
+  border: 2px solid #1a1a1a;
+  border-radius: 6px 6px 2px 2px;
+  margin-top: -3px;
 }
 
+/* --- GIRL STYLING --- */
+/* Long flowing hair - TOP part positioned behind head */
+.girl-hair {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 16px;
+  background: #4a3728;
+  border-radius: 16px 16px 4px 4px;
+  z-index: 9; /* Hair top is high, below face */
+  border: 1.5px solid #2c1f18;
+}
+
+/* Hair strands flowing down sides */
+.long-hair-strand {
+  position: absolute;
+  width: 8px;
+  background: linear-gradient(180deg, #4a3728 0%, #3d2c22 100%);
+  border-radius: 0 0 10px 10px;
+  z-index: 1; /* Behind everything except hair back */
+}
+
+.left-strand {
+  left: 2px;
+  top: 12px;
+  height: 45px;
+  transform-origin: top center;
+}
+
+.right-strand {
+  right: 2px;
+  top: 12px;
+  height: 45px;
+  transform-origin: top center;
+}
+
+/* Long hair flowing behind the ENTIRE body - at body level */
+.girl-hair-back-positioner {
+  position: absolute;
+  top: 20px; /* Below the head */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: -1; /* BEHIND everything */
+  pointer-events: none;
+}
+
+.girl-hair-back-wrapper {
+  width: 32px;
+  height: 55px;
+  background: linear-gradient(180deg, #4a3728 0%, #3d2c22 50%, #2c1f18 100%);
+  border-radius: 4px 4px 16px 16px;
+  transform-origin: top center;
+}
+
+/* Keep old class for backwards compatibility */
+.long-hair-back {
+  display: none;
+}
+
+/* Girl dress bodice - fitted top */
 .girl-dress {
-  background: #e74c3c;
-  border-radius: 5px 5px 10px 10px;
-  width: 30px;
+  background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+  border-radius: 5px 5px 2px 2px;
+  width: 26px;
+  height: 24px;
+  border: 2px solid #a93226;
+  margin-top: -3px;
+  position: relative;
+  z-index: 8; /* Dress is in front of hair back */
 }
 
+/* Girl's flared skirt - large and beautiful */
+.girl-skirt {
+  width: 48px;
+  height: 35px;
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 60%, #922b21 100%);
+  /*
+    Flared skirt shape (narrow at waist, wide at hem).
+    This avoids the skirt looking "upside-down"/bucket-like.
+  */
+  clip-path: polygon(22% 0%, 78% 0%, 100% 100%, 0% 100%);
+  border-radius: 6px 6px 18px 18px; /* Soft corners + rounded hem */
+  margin-top: -2px;
+  border: 2px solid #922b21;
+  border-top: none;
+  position: relative;
+  z-index: 7; /* Skirt in front of hair back, behind dress */
+  transform-origin: top center;
+}
+
+/* Skirt hem detail */
+.girl-skirt::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+}
+
+/* --- LEGS --- */
 .figure-legs {
   display: flex;
-  gap: 3px;
-  margin-top: -2px;
+  gap: 4px;
+  margin-top: 0;
+  z-index: 6; /* Legs in front of hair back */
 }
 
-.figure-legs::before,
-.figure-legs::after {
-  content: '';
-  width: 8px;
-  height: 25px;
+.figure-legs .leg {
+  width: 10px;
+  height: 26px;
   background: #34495e;
-  border: 1px solid var(--ink-black);
-  border-radius: 0 0 3px 3px;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 2px 2px 4px 4px;
 }
 
-.girl-figure .figure-legs::before,
-.girl-figure .figure-legs::after {
+/* Girl legs - peeking under skirt */
+.girl-figure .figure-legs {
+  margin-top: -8px;
+}
+
+.girl-figure .figure-legs .leg {
   background: #f5d0c5;
-  height: 20px;
+  height: 16px;
+  width: 7px;
 }
 
 /* Meeting heart */
