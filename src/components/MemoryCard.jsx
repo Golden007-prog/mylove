@@ -1,6 +1,16 @@
 import { motion } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 
+// Helper to resolve photo paths with BASE_URL
+const getPhotoSrc = (photo) => {
+  if (!photo) return null;
+  // If photo already has full URL or data URL, return as-is
+  if (photo.startsWith('http') || photo.startsWith('data:')) return photo;
+  // Remove leading slash and prepend BASE_URL
+  const cleanPath = photo.startsWith('/') ? photo.slice(1) : photo;
+  return `${import.meta.env.BASE_URL}${cleanPath}`;
+};
+
 export default function MemoryCard({ lyric, photo, index, isVisible, type = 'photo' }) {
   const [isInCenter, setIsInCenter] = useState(false);
   const cardRef = useRef(null);
@@ -80,7 +90,7 @@ export default function MemoryCard({ lyric, photo, index, isVisible, type = 'pho
           <div className="memory-card-inner sticky-note">
             {photo && (
               <div className="memory-photo-wrapper">
-                <img src={photo} alt="Memory" className="memory-photo" loading="lazy" />
+                <img src={getPhotoSrc(photo)} alt="Memory" className="memory-photo" loading="lazy" />
               </div>
             )}
             <p className="memory-lyric">{lyric}</p>
@@ -115,7 +125,7 @@ export default function MemoryCard({ lyric, photo, index, isVisible, type = 'pho
           <span className="tape-corner bottom-right" />
           
           <div className="memory-photo-wrapper">
-            <img src={photo} alt="Memory" className="memory-photo" loading="lazy" />
+            <img src={getPhotoSrc(photo)} alt="Memory" className="memory-photo" loading="lazy" />
           </div>
           <p className="memory-lyric">{lyric}</p>
         </div>

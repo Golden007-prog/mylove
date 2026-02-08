@@ -93,7 +93,7 @@ function App() {
       {/* Audio element */}
       <audio 
         ref={audioRef} 
-        src="/music/background.m4a"
+        src={`${import.meta.env.BASE_URL}music/background.m4a`}
         preload="auto"
       />
       
@@ -117,7 +117,7 @@ function App() {
       {/* Phase 2a: Video Intro (20s - 57s) */}
       <VideoIntro 
         isActive={phase === 'video'}
-        videoSrc="/video/1.mp4"
+        videoSrc={`${import.meta.env.BASE_URL}video/1.mp4`}
       />
 
       {/* Lyrics overlay during video */}
