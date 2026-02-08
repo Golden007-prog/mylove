@@ -92,10 +92,14 @@ export default function FinalScreen({ isVisible }) {
         <div className="glowing-heart">
           <div className="heart-glow" />
           <div className="heart-shape">
-            <img 
-              src="https://picsum.photos/300/300?random=final" 
-              alt="Our Love"
+            <video 
+              src={`${import.meta.env.BASE_URL}video/forever.mp4`}
+              autoPlay
+              loop
+              muted
+              playsInline
               className="heart-photo"
+              style={{ objectFit: 'cover' }}
             />
           </div>
         </div>

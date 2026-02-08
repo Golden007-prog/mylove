@@ -110,7 +110,7 @@ export const timeline = [
   { timeStart: 196.1, lyric: "Listening to our favorite song", photo: "/photos/18.jpeg", type: "photo" },    // dur: 4.6
   
   // 200.7s (196.1 + 4.6)
-  { timeStart: 200.7, lyric: "When I saw you in that dress, looking so beautiful", type: "lyric" },          // dur: 4.2
+  { timeStart: 200.7, lyric: "When I saw you in that dress, looking so beautiful", photo: "/photos/23.jpeg", type: "photo" },          // dur: 4.2
   
   // 204.9s (200.7 + 4.2)
   { timeStart: 204.9, lyric: "I don't deserve this", type: "lyric" },                                         // dur: 4.6
